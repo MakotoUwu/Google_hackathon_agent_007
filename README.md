@@ -1,4 +1,4 @@
-# ♿ Accessible Journey Assistant
+# ♿ Accessible Journey Assistant!
 
 > **Empowering people with mobility challenges to explore cities confidently**
 
