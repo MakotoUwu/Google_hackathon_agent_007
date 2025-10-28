@@ -105,3 +105,21 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+
+# Google Cloud credentials
+*.json
+!package.json
+!tsconfig.json
+!components.json
+!drizzle/**/*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Gemini AI files (keep in Gemini/ folder only)
+/maps_agent/
+/python_backend/

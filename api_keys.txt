@@ -1,0 +1,8 @@
+# Google Cloud API Keys
+
+## API Key 1 (31 APIs - includes Maps)
+AIzaSyBS4I8RFyZLjT_VmQKpdLRhYLY7k7g6jnY
+
+## Notes:
+- This key has access to 31 APIs including Maps APIs
+- Use this for both Gemini API and Google Maps

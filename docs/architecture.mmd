@@ -1,0 +1,90 @@
+%% Maps Agent with Google ADK - Architecture Diagram
+%% Google-style agent architecture
+
+graph TB
+    subgraph "User Interface Layer"
+        User[👤 User]
+        Browser[🌐 Web Browser]
+        ReactApp[⚛️ React Application]
+    end
+
+    subgraph "Application Layer"
+        ChatUI[💬 Chat Interface<br/>ChatInterface.tsx]
+        MapUI[🗺️ Map View<br/>MapView.tsx]
+        tRPCClient[📡 tRPC Client<br/>Type-safe API]
+    end
+
+    subgraph "Backend Layer"
+        NodeServer[🟢 Node.js Server<br/>Express + tRPC]
+        AgentRouter[🔀 Agent Router<br/>routers.ts]
+        AgentWrapper[🐍 Python Wrapper<br/>adk-agent.ts]
+    end
+
+    subgraph "Agent Layer"
+        PythonProcess[🐍 Python Process<br/>runner.py]
+        ADKRunner[🤖 ADK Runner<br/>Agent Orchestrator]
+        AgentDef[📋 Agent Definition<br/>agent.py]
+    end
+
+    subgraph "Google Cloud Platform"
+        VertexAI[🧠 Vertex AI<br/>Gemini 2.0 Flash]
+        MapsAPI[🗺️ Google Maps Platform<br/>Places API + Grounding]
+        IAM[🔐 Cloud IAM<br/>Service Account Auth]
+    end
+
+    subgraph "Data Flow"
+        SessionMgmt[💾 Session Management<br/>Conversation Context]
+        PlaceData[📍 Place Data<br/>Accessibility Info]
+    end
+
+    %% User interactions
+    User -->|Types query| Browser
+    Browser -->|Renders| ReactApp
+    ReactApp -->|Components| ChatUI
+    ReactApp -->|Components| MapUI
+
+    %% Frontend to Backend
+    ChatUI -->|agent.query mutation| tRPCClient
+    tRPCClient -->|HTTP/JSON| NodeServer
+
+    %% Backend processing
+    NodeServer -->|Routes request| AgentRouter
+    AgentRouter -->|Spawns process| AgentWrapper
+    AgentWrapper -->|child_process.spawn| PythonProcess
+
+    %% Agent execution
+    PythonProcess -->|Initializes| ADKRunner
+    ADKRunner -->|Loads| AgentDef
+    AgentDef -->|Maintains| SessionMgmt
+
+    %% Cloud interactions
+    ADKRunner -->|gRPC/Protobuf| VertexAI
+    VertexAI -->|Function Calling| MapsAPI
+    ADKRunner -->|Authenticates via| IAM
+    MapsAPI -->|Returns| PlaceData
+
+    %% Response flow
+    PlaceData -->|Tool result| VertexAI
+    VertexAI -->|Generated response| ADKRunner
+    ADKRunner -->|JSON output| PythonProcess
+    PythonProcess -->|stdout| AgentWrapper
+    AgentWrapper -->|Returns data| AgentRouter
+    AgentRouter -->|tRPC response| tRPCClient
+    tRPCClient -->|Updates UI| ChatUI
+    PlaceData -->|Parsed & geocoded| MapUI
+    MapUI -->|Displays| Browser
+
+    %% Styling
+    classDef userLayer fill:#E8F5E9,stroke:#4CAF50,stroke-width:2px
+    classDef appLayer fill:#E3F2FD,stroke:#2196F3,stroke-width:2px
+    classDef backendLayer fill:#FFF3E0,stroke:#FF9800,stroke-width:2px
+    classDef agentLayer fill:#F3E5F5,stroke:#9C27B0,stroke-width:2px
+    classDef gcpLayer fill:#FFEBEE,stroke:#F44336,stroke-width:2px
+    classDef dataLayer fill:#E0F2F1,stroke:#009688,stroke-width:2px
+
+    class User,Browser,ReactApp userLayer
+    class ChatUI,MapUI,tRPCClient appLayer
+    class NodeServer,AgentRouter,AgentWrapper backendLayer
+    class PythonProcess,ADKRunner,AgentDef agentLayer
+    class VertexAI,MapsAPI,IAM gcpLayer
+    class SessionMgmt,PlaceData dataLayer

@@ -1,0 +1,172 @@
+%% Maps Agent - Detailed Technical Architecture
+%% All Google Technologies, APIs, and Protocols
+
+graph TB
+    subgraph "Client Layer"
+        User[👤 End User<br/>Voice/Text Input]
+        Browser[🌐 Chrome/Firefox<br/>Web Audio API<br/>WebSocket Support]
+    end
+
+    subgraph "Frontend - React Application"
+        ChatUI[💬 Chat Interface<br/>- Real-time messaging<br/>- Message history<br/>- Loading states]
+        MapUI[🗺️ Google Maps JavaScript API<br/>- Maps SDK v3<br/>- Marker clustering<br/>- Info windows<br/>- Custom markers]
+        VoiceUI[🎤 Voice Interface<br/>- getUserMedia API<br/>- AudioContext<br/>- AudioWorklet]
+        tRPCClient[📡 tRPC Client v11<br/>- Type-safe mutations<br/>- React Query integration<br/>- Auto-retry logic]
+    end
+
+    subgraph "API Gateway Layer"
+        NodeServer[🟢 Node.js 22 + Express<br/>- HTTP/1.1 server<br/>- CORS middleware<br/>- Request logging]
+        tRPCServer[🔀 tRPC Server<br/>- Schema validation with Zod<br/>- Error handling<br/>- Context injection]
+    end
+
+    subgraph "Backend Services"
+        AgentService[🤖 Agent Service<br/>- Process management<br/>- Request queuing<br/>- Timeout handling]
+        AuthMiddleware[🔐 Auth Middleware<br/>- Session validation<br/>- User context<br/>- Rate limiting]
+    end
+
+    subgraph "Python Agent Runtime"
+        PythonProc[🐍 Python 3.11 Process<br/>- Subprocess spawn<br/>- stdin/stdout pipes<br/>- JSON serialization]
+        
+        ADKCore[📦 Google ADK SDK<br/>google-adk==1.0.0<br/>- Agent framework<br/>- Tool registry<br/>- Event system]
+        
+        Runner[🏃 ADK Runner<br/>- Session lifecycle<br/>- Turn management<br/>- State persistence]
+        
+        AgentDef[🤖 Agent Definition<br/>Model: gemini-2.0-flash-exp<br/>Temperature: 1.0<br/>Tools: google_maps_grounding]
+    end
+
+    subgraph "Google Cloud - Vertex AI"
+        VertexEndpoint[🧠 Vertex AI API<br/>Endpoint: us-central1-aiplatform.googleapis.com<br/>Protocol: gRPC + HTTP/2]
+        
+        GeminiModel[✨ Gemini 2.0 Flash<br/>- Multimodal input<br/>- Function calling<br/>- 1M token context<br/>- Streaming responses]
+        
+        FunctionCalling[⚙️ Function Calling Engine<br/>- Tool schema validation<br/>- Argument extraction<br/>- Parallel execution<br/>- Error handling]
+    end
+
+    subgraph "Google Maps Platform"
+        PlacesAPI[🗺️ Places API New<br/>Endpoint: places.googleapis.com/v1<br/>Text search, Nearby search, Place details]
+        
+        GroundingTool[🔧 google_maps_grounding<br/>- Query understanding<br/>- Location extraction<br/>- Accessibility filtering<br/>- Result ranking]
+        
+        PlaceDetails[📍 Place Details API<br/>Fields:<br/>- wheelchairAccessibleEntrance<br/>- wheelchairAccessibleRestroom<br/>- wheelchairAccessibleSeating<br/>- wheelchairAccessibleParking]
+        
+        GeocodingAPI[🌍 Geocoding API<br/>- Address to coordinates<br/>- Reverse geocoding<br/>- Place ID lookup]
+        
+        DirectionsAPI[🛣️ Directions API<br/>Route calculation<br/>Turn-by-turn navigation<br/>Accessibility routing]
+    end
+
+    subgraph "Authentication & Security"
+        ServiceAccount[🔑 Service Account<br/>Type: service_account<br/>Format: JSON key file<br/>Scopes: cloud-platform]
+        
+        OAuth[🔐 OAuth 2.0 Server<br/>Token endpoint:<br/>oauth2.googleapis.com/token<br/>Grant type: JWT Bearer]
+        
+        IAM[👥 Cloud IAM<br/>Roles:<br/>- aiplatform.user<br/>- serviceusage.serviceUsageConsumer]
+        
+        APIKey[🔑 API Key<br/>Restrictions:<br/>- HTTP referrers<br/>- API restrictions<br/>- Quota limits]
+    end
+
+    subgraph "Data & State Management"
+        SessionStore[💾 Session Store<br/>- In-memory cache<br/>- Conversation history<br/>- User preferences<br/>- Tool call logs]
+        
+        Database[🗄️ PostgreSQL + Drizzle ORM<br/>Tables:<br/>- users<br/>- conversations<br/>- places<br/>- routes]
+    end
+
+    subgraph "Protocols & Formats"
+        HTTP[📡 HTTP/1.1<br/>Methods: GET POST<br/>Content-Type: application/json]
+        
+        gRPC[⚡ gRPC<br/>Protocol: HTTP/2<br/>Serialization: Protocol Buffers<br/>Features: Streaming, multiplexing]
+        
+        WebSocket[🔌 WebSocket<br/>Protocol: ws:// wss://<br/>Use case: Real-time updates]
+        
+        JSON[📄 JSON<br/>Encoding: UTF-8<br/>Schema: Zod validation]
+        
+        Protobuf[📦 Protocol Buffers<br/>Version: proto3<br/>Schemas: google.ai.generativelanguage.v1]
+    end
+
+    %% User Flow
+    User -->|Voice/Text| Browser
+    Browser -->|Renders| ChatUI
+    Browser -->|Displays| MapUI
+    Browser -->|Captures audio| VoiceUI
+
+    %% Frontend to Backend
+    ChatUI -->|HTTP POST| tRPCClient
+    VoiceUI -->|WebSocket| tRPCClient
+    tRPCClient -->|JSON over HTTP| NodeServer
+
+    %% Backend Processing
+    NodeServer -->|Routes| tRPCServer
+    tRPCServer -->|Validates| AuthMiddleware
+    AuthMiddleware -->|Authorized| AgentService
+
+    %% Agent Execution
+    AgentService -->|spawn| PythonProc
+    PythonProc -->|Imports| ADKCore
+    ADKCore -->|Creates| Runner
+    Runner -->|Executes| AgentDef
+
+    %% Vertex AI Communication
+    AgentDef -->|gRPC request| VertexEndpoint
+    VertexEndpoint -->|Routes to| GeminiModel
+    GeminiModel -->|Analyzes query| FunctionCalling
+    FunctionCalling -->|Calls tool| GroundingTool
+
+    %% Maps API Calls
+    GroundingTool -->|HTTPS GET/POST| PlacesAPI
+    PlacesAPI -->|Enriches| PlaceDetails
+    GroundingTool -->|Geocodes| GeocodingAPI
+    GroundingTool -->|Routes| DirectionsAPI
+
+    %% Authentication Flow
+    PythonProc -->|Reads| ServiceAccount
+    ServiceAccount -->|JWT| OAuth
+    OAuth -->|Access token| VertexEndpoint
+    MapUI -->|Uses| APIKey
+    APIKey -->|Validates| IAM
+
+    %% Data Flow
+    Runner -->|Persists| SessionStore
+    AgentService -->|Logs| Database
+    PlaceDetails -->|Stores| Database
+
+    %% Response Flow
+    PlaceDetails -->|Results| GroundingTool
+    GroundingTool -->|Tool response| FunctionCalling
+    FunctionCalling -->|Context| GeminiModel
+    GeminiModel -->|Generated text| VertexEndpoint
+    VertexEndpoint -->|gRPC response| AgentDef
+    AgentDef -->|Returns| Runner
+    Runner -->|JSON output| PythonProc
+    PythonProc -->|stdout| AgentService
+    AgentService -->|tRPC response| tRPCClient
+    tRPCClient -->|Updates| ChatUI
+    tRPCClient -->|Places data| MapUI
+
+    %% Protocol Usage
+    tRPCClient -.->|Uses| HTTP
+    VertexEndpoint -.->|Uses| gRPC
+    VoiceUI -.->|Uses| WebSocket
+    AgentService -.->|Serializes| JSON
+    GeminiModel -.->|Uses| Protobuf
+
+    %% Styling
+    classDef clientLayer fill:#E8F5E9,stroke:#4CAF50,stroke-width:3px
+    classDef frontendLayer fill:#E3F2FD,stroke:#2196F3,stroke-width:3px
+    classDef gatewayLayer fill:#FFF3E0,stroke:#FF9800,stroke-width:3px
+    classDef backendLayer fill:#FCE4EC,stroke:#E91E63,stroke-width:3px
+    classDef agentLayer fill:#F3E5F5,stroke:#9C27B0,stroke-width:3px
+    classDef vertexLayer fill:#FFEBEE,stroke:#F44336,stroke-width:3px
+    classDef mapsLayer fill:#E0F7FA,stroke:#00BCD4,stroke-width:3px
+    classDef authLayer fill:#FFF9C4,stroke:#FBC02D,stroke-width:3px
+    classDef dataLayer fill:#E0F2F1,stroke:#009688,stroke-width:3px
+    classDef protocolLayer fill:#ECEFF1,stroke:#607D8B,stroke-width:2px
+
+    class User,Browser clientLayer
+    class ChatUI,MapUI,VoiceUI,tRPCClient frontendLayer
+    class NodeServer,tRPCServer gatewayLayer
+    class AgentService,AuthMiddleware backendLayer
+    class PythonProc,ADKCore,Runner,AgentDef agentLayer
+    class VertexEndpoint,GeminiModel,FunctionCalling vertexLayer
+    class PlacesAPI,GroundingTool,PlaceDetails,GeocodingAPI,DirectionsAPI mapsLayer
+    class ServiceAccount,OAuth,IAM,APIKey authLayer
+    class SessionStore,Database dataLayer
+    class HTTP,gRPC,WebSocket,JSON,Protobuf protocolLayer

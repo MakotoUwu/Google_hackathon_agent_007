@@ -1,0 +1,57 @@
+# Node modules
+node_modules
+client/node_modules
+
+# Build outputs (will be copied from build stage)
+client/dist
+.next
+
+# Development files
+.env
+.env.local
+.env.*.local
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage
+.nyc_output
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Credentials (should be mounted or provided via env)
+*.json
+!package.json
+!tsconfig.json
