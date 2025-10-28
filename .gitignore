@@ -123,3 +123,4 @@ __pycache__/
 # Gemini AI files (keep in Gemini/ folder only)
 /maps_agent/
 /python_backend/
+api_keys.txt

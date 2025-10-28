@@ -275,4 +275,8 @@
 - [x] Rewrite README.md for Google ADK hackathon (winning version)
 - [x] Reorganize project structure: move AI files to Gemini/ folder
 - [x] Security audit: check for exposed API keys and credentials
-- [ ] Push clean code to GitHub repository
+- [x] Update HTML meta tags with accessibility focus
+- [x] Update agent system prompt to be more empathetic and focused on helping people with disabilities
+- [x] Restart dev server with updated agent
+- [ ] Create final checkpoint
+- [ ] Push to GitHub (user will do manually)
