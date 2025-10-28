@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Send, Loader2 } from 'lucide-react';
 import { Streamdown } from 'streamdown';
 import { trpc } from '@/lib/trpc';
-import { parsePlacesFromResponse, type ParsedPlace } from '@/lib/parse-places';
+import { parsePlacesFromResponse, geocodePlace, type ParsedPlace } from '@/lib/parse-places';
 
 interface Message {
   id: string;
@@ -27,23 +27,54 @@ export default function ChatInterface({ onPlacesFound }: ChatInterfaceProps) {
 
   // tRPC mutation for agent query
   const agentQuery = trpc.agent.query.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // Parse places from response
       const places = parsePlacesFromResponse(data.response);
       
-      // Add assistant response to messages
-      const assistantMessage: Message = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: data.response,
-        timestamp: new Date(),
-        places: places.length > 0 ? places : undefined,
-      };
-      setMessages(prev => [...prev, assistantMessage]);
+      // Geocode places to get coordinates
+      const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+      if (apiKey && places.length > 0) {
+        const placesWithCoords = await Promise.all(
+          places.map(async (place) => {
+            if (!place.lat || !place.lng) {
+              const coords = await geocodePlace(place.address || place.name, apiKey);
+              if (coords) {
+                return { ...place, lat: coords.lat, lng: coords.lng };
+              }
+            }
+            return place;
+          })
+        );
+        
+        // Add assistant response to messages
+        const assistantMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date(),
+          places: placesWithCoords.length > 0 ? placesWithCoords : undefined,
+        };
+        setMessages(prev => [...prev, assistantMessage]);
 
-      // Notify parent about found places
-      if (places.length > 0 && onPlacesFound) {
-        onPlacesFound(places);
+        // Notify parent about found places with coordinates
+        if (placesWithCoords.length > 0 && onPlacesFound) {
+          onPlacesFound(placesWithCoords);
+        }
+      } else {
+        // No API key or no places, just add message
+        const assistantMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: data.response,
+          timestamp: new Date(),
+          places: places.length > 0 ? places : undefined,
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+
+        // Notify parent about found places
+        if (places.length > 0 && onPlacesFound) {
+          onPlacesFound(places);
+        }
       }
     },
     onError: (error) => {
