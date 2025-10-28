@@ -120,7 +120,17 @@ __pycache__/
 *.so
 .Python
 
-# Gemini AI files (keep in Gemini/ folder only)
-/maps_agent/
-/python_backend/
+# Gemini AI files documentation (keep in Gemini/docs/ folder)
+# Note: maps_agent/ and python_backend/ are needed for deployment
 api_keys.txt
+
+# Service account credentials
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!components.json
+
+# Environment files with secrets
+maps_agent/.env*
+python_backend/.env*
