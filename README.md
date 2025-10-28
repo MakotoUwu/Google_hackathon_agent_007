@@ -8,6 +8,8 @@
 [![Built with React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
+![Accessible Journey Assistant Screenshot](docs/screenshot.png)
+
 ## 🌍 The Problem
 
 Over **1 billion people worldwide** live with some form of disability, with mobility challenges affecting their ability to navigate public spaces confidently. Finding wheelchair-accessible venues, understanding accessibility features, and planning inclusive routes remains a daily struggle. Traditional mapping solutions lack comprehensive, real-time accessibility data and conversational interfaces that understand nuanced accessibility needs.
