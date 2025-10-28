@@ -1,0 +1,62 @@
+graph TB
+    subgraph "User Interface Layer"
+        UI[🎨 React 19 Frontend<br/>WCAG 2.1 Compliant]
+        Voice[🎤 Voice Mode Beta<br/>Hands-free Interaction]
+        Map[🗺️ Google Maps Integration<br/>Visual Accessibility Markers]
+    end
+
+    subgraph "Application Layer"
+        API[⚡ tRPC API<br/>Type-safe Communication]
+        Auth[🔐 OAuth 2.0<br/>Secure Authentication]
+        WS[🔌 WebSocket Proxy<br/>Real-time Voice Streaming]
+    end
+
+    subgraph "AI Agent Layer - Google ADK"
+        Agent[🤖 Gemini 2.0 Flash<br/>Accessible Journey Assistant]
+        Grounding[🔍 Google Maps Grounding<br/>Real-time Accessibility Data]
+        Memory[💾 Session Memory<br/>Context Awareness]
+    end
+
+    subgraph "Data Layer"
+        DB[(🗄️ MySQL Database<br/>User Preferences & History)]
+        S3[☁️ S3 Storage<br/>Media & Assets]
+    end
+
+    subgraph "External Services"
+        GMaps[🌍 Google Maps Platform<br/>Places API & Accessibility Features]
+        Vertex[⚡ Vertex AI<br/>Gemini 2.0 Flash Exp]
+    end
+
+    %% User interactions
+    UI -->|Text Chat| API
+    Voice -->|Audio Stream| WS
+    Map -->|Display Results| UI
+
+    %% API layer
+    API -->|Agent Requests| Agent
+    WS -->|Voice Data| Agent
+    API -->|Auth Check| Auth
+    API -->|Store Data| DB
+
+    %% Agent layer
+    Agent -->|Search Query| Grounding
+    Agent -->|LLM Inference| Vertex
+    Agent -->|Context| Memory
+    Grounding -->|Accessibility Data| GMaps
+
+    %% Data flow
+    DB -->|User Context| Agent
+    S3 -->|Assets| UI
+
+    %% Styling
+    classDef frontend fill:#61DAFB,stroke:#333,stroke-width:2px,color:#000
+    classDef backend fill:#68A063,stroke:#333,stroke-width:2px,color:#fff
+    classDef ai fill:#8E75B2,stroke:#333,stroke-width:2px,color:#fff
+    classDef data fill:#4285F4,stroke:#333,stroke-width:2px,color:#fff
+    classDef external fill:#34A853,stroke:#333,stroke-width:2px,color:#fff
+
+    class UI,Voice,Map frontend
+    class API,Auth,WS backend
+    class Agent,Grounding,Memory ai
+    class DB,S3 data
+    class GMaps,Vertex external
